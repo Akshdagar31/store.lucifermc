@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucifer MC | Premium Minecraft Crossplay Server</title>
+    <!-- Google Fonts & FontAwesome for icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght=600;900&family=Poppins:wght=300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase CDN Link -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* CSS VARIABLE MANAGEMENT */
+        :root {
+            --bg-dark: #070709;
+            --bg-card: rgba(14, 14, 18, 0.75); 
+            --text-light: #f5f5f7;
+            --text-muted: #cdcdc7;
+            --primary-glow: #ff3333;
+            --secondary-glow: #ffaa00;
+            --accent-light: #ffffff;
+            --border-color: rgba(255, 255, 255, 0.12);
+            --transition-speed: 0.4s;
+
+            /* Rank Color Palette Updates */
+            --color-void: #ffd700;       
+            --color-vip: #55ff55;        
+            --color-mvp: #ffff55;        
+            --color-elite: #00ffff;      
+            --color-lucifer: #8b0000;    
+            --color-media: #ff0055;      
+        }
+
+        /* RESET & BASE STYLES */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* FULLSCREEN VIDEO BACKGROUND */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- EXCLUSIVE FULL-PAGE LOGIN PORTAL --- */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(7, 7, 9, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity var(--transition-speed) ease;
+        }
+
+        .login-box {
+            background: rgba(14, 14, 18, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 3.5rem 2.5rem;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 51, 51, 0.1);
+        }
+
+        .login-logo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 51, 51, 0.4);
+            margin: 0 auto 1.5rem;
+            filter: drop-shadow(0 0 15px rgba(255, 51, 51, 0.3));
+        }
+
+        .login-box h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        .login-box p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 2.5rem;
+        }
+
+        /* --- MAIN CONTENT CONTAINER (Hidden by default) --- */
+        #mainContent {
+            display: none;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 0;
+        }
+
+        .section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--accent-light) 30%, var(--primary-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        /* HEADER & NAVIGATION */
+        header {
+            background-color: rgba(7, 7, 9, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 5%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .nav-logo-img {
+            height: 55px;
+            width: 55px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 51, 51, 0.4);
+            filter: drop-shadow(0 0 8px rgba(255, 51, 51, 0.4));
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition-speed);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-light);
+        }
+
+        .logout-btn {
+            font-size: 0.8rem;
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            padding: 6px 14px;
+            color: #ff5555;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: var(--transition-speed);
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 51, 51, 0.25);
+            border-color: rgba(255, 51, 51, 0.6);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            padding: 4rem 0 6rem;
+            text-align: center;
+        }
+
+        .hero-logo-display {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 51, 51, 0.3);
+            margin: 0 auto 2rem;
+            display: block;
+            filter: drop-shadow(0 0 30px rgba(255, 51, 51, 0.5));
+        }
+
+        .hero-title {
+            font-family: 'Cinzel', serif;
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero-title span {
+            color: var(--accent-light);
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .feature-badge {
+            background: rgba(7, 7, 9, 0.7);
+            border: 1px solid var(--border-color);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-badge i { color: var(--secondary-glow); }
+
+        /* CONNECTION BOXES */
+        .connection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .conn-box {
+            background: rgba(7, 7, 9, 0.75);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .conn-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .conn-value { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; }
+        
+        .copy-tooltip {
+            position: absolute;
+            bottom: -30px;
+            background: #fff;
+            color: #000;
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* LIVE STATUS TRACKER */
+        .status-panel {
+            background: rgba(7, 7, 9, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 4rem auto 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .status-info-side { display: flex; align-items: center; gap: 15px; }
+        .status-indicator { width: 12px; height: 12px; border-radius: 50%; background-color: #3b3b3b; }
+        .status-indicator.online { background-color: #00ff66; box-shadow: 0 0 15px #00ff66; }
+        .status-indicator.offline { background-color: #ff3333; box-shadow: 0 0 15px #ff3333; }
+        .player-count { font-family: 'Cinzel', serif; font-size: 2rem; font-weight: 900; }
+
+        /* STOREFRONT & RANK CARDS */
+        .store-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .rank-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 2.5rem 1.5rem; display: flex; flex-direction: column; position: relative; overflow: hidden; backdrop-filter: blur(16px); }
+        
+        .rank-card.void-rank { border-top: 4px solid var(--color-void); }
+        .rank-card.vip-rank { border-top: 4px solid var(--color-vip); }
+        .rank-card.mvp-rank { border-top: 4px solid var(--color-mvp); }
+        .rank-card.elite-rank { border-top: 4px solid var(--color-elite); }
+        .rank-card.lucifer-rank { border-top: 5px solid var(--color-lucifer); }
+
+        .rank-name { font-family: 'Cinzel', serif; font-size: 1.6rem; margin-bottom: 0.5rem; }
+        .rank-price { font-size: 1.8rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--accent-light); }
+        .rank-price span { font-size: 0.8rem; color: #d1d1d6; }
+
+        .perks-list { list-style: none; margin-bottom: 2rem; flex-grow: 1; text-align: left; }
+        .perks-list li { font-size: 0.85rem; margin-bottom: 0.6rem; display: flex; gap: 8px; }
+        
+        .void-rank i { color: var(--color-void); }
+        .vip-rank i { color: var(--color-vip); }
+        .mvp-rank i { color: var(--color-mvp); }
+        .elite-rank i { color: var(--color-elite); }
+        .lucifer-rank i { color: var(--color-lucifer); }
+
+        .buy-btn {
+            background: transparent;
+            border: 1px solid var(--text-light);
+            color: var(--text-light);
+            padding: 0.8rem;
+            border-radius: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            text-align: center;
+            text-decoration: none;
+            transition: var(--transition-speed);
+        }
+
+        .void-rank .buy-btn { border-color: var(--color-void); color: var(--color-void); }
+        .void-rank .buy-btn:hover { background: var(--color-void); color: #000; }
+        .vip-rank .buy-btn { border-color: var(--color-vip); color: var(--color-vip); }
+        .vip-rank .buy-btn:hover { background: var(--color-vip); color: #000; }
+        .mvp-rank .buy-btn { border-color: var(--color-mvp); color: var(--color-mvp); }
+        .mvp-rank .buy-btn:hover { background: var(--color-mvp); color: #000; }
+        .elite-rank .buy-btn { border-color: var(--color-elite); color: var(--color-elite); }
+        .elite-rank .buy-btn:hover { background: var(--color-elite); color: #000; }
+        .lucifer-rank .buy-btn { background: var(--color-lucifer); border-color: var(--color-lucifer); color: #fff; }
+        .lucifer-rank .buy-btn:hover { background: #be0000; }
+
+        /* REVIEWS SYSTEM STYLES */
+        .reviews-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; margin-top: 2rem; }
+        @media (max-width: 900px) { .reviews-layout { grid-template-columns: 1fr; } }
+
+        .review-form-container { background: rgba(7, 7, 9, 0.8); border: 1px solid var(--border-color); padding: 2rem; border-radius: 16px; }
+        .review-form-container h3 { font-family: 'Cinzel', serif; font-size: 1.3rem; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.25rem; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase; }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .star-rating-select { display: flex; gap: 8px; font-size: 1.4rem; margin-bottom: 0.5rem; }
+        .star-rating-select i { color: #3a3a45; cursor: pointer; }
+        .star-rating-select i.active { color: var(--secondary-glow); }
+
+        .submit-review-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff3333 0%, #be0000 100%);
+            color: #fff;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .reviews-feed { display: flex; flex-direction: column; gap: 1.5rem; max-height: 520px; overflow-y: auto; }
+        .review-card { background: rgba(7, 7, 9, 0.8); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 14px; display: flex; gap: 1rem; }
+        .avatar-img { width: 44px; height: 44px; border-radius: 8px; background: #111; border: 1px solid var(--border-color); }
+
+        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; width: 100%; }
+        .reviewer-name { font-weight: 700; font-size: 1rem; }
+        .review-stars { color: var(--secondary-glow); font-size: 0.8rem; display: flex; gap: 3px; }
+        .review-text { font-size: 0.9rem; color: #e1e1e6; text-align: left; }
+        .review-date { font-size: 0.75rem; color: #888; }
+
+        /* FOOTER */
+        footer { background: rgba(7, 7, 9, 0.85); border-top: 1px solid var(--border-color); padding: 2rem 0; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
+
+        /* SIGN IN PORTAL BUTTON styling */
+        .discord-login-portal-btn {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(88, 101, 242, 0.3);
+            transition: var(--transition-speed);
+        }
+        .discord-login-portal-btn:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(88, 101, 242, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.8rem; }
+            .nav-links { display: none; }
+            .section-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOOPING VIDEO BACKGROUND ELEMENT -->
+    <div class="video-background">
+        <video autoplay loop muted playsinline>
+            <source src="minecraft-fireflies-forest-moewalls-com.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <!-- --- EXCLUSIVE GATEWAY: DISCORD LOGIN OVERLAY --- -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <img src="Gemini_Generated_Image_2n1huz2n1huz2n1h.png" class="login-logo" alt="LuciferMC Logo">
+            <h2>Lucifer MC</h2>
+            <p>Welcome to the portal. You must authenticate with Discord to access the website network.</p>
+            <button type="button" onclick="loginWithDiscord()" class="discord-login-portal-btn">
+                <i class="fa-brands fa-discord"></i> Sign in with Discord
+            </button>
+        </div>
+    </div>
+
+    <!-- --- SECURE WEBSITE MAIN CONTENT --- -->
+    <div id="mainContent">
+        <!-- NAVIGATION HEADER -->
+        <header>
+            <div class="nav-container">
+                <a href="#" class="logo">
+                    <img src="Gemini_Generated_Image_2n1huz2n1huz2n1h.png" alt="Lucifer MC Logo" class="nav-logo-img">
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#store">Store</a></li>
+                    <li><a href="#reviews">Reviews</a></li>
+                    <li id="adminUserTag" style="font-size:0.85rem; color:var(--text-muted); font-weight:600;"></li>
+                    <li><button onclick="logout()" class="logout-btn">Logout</button></li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- HERO HOME SECTION -->
+        <section class="hero">
+            <div class="container">
+                <img src="Gemini_Generated_Image_2n1huz2n1huz2n1h.png" alt="Lucifer MC Logo" class="hero-logo-display">
+                <h1 class="hero-title">Welcome to <br><span>Lucifer MC</span></h1>
+                <p class="hero-subtitle">Experience the ultimate crossplay SMP server running a native Java backbone with seamlessly configured Geyser/Floodgate elements.</p>
+                
+                <div class="badge-container">
+                    <div class="feature-badge"><i class="fa-solid fa-server"></i> 24/7 Dedicated Server</div>
+                    <div class="feature-badge"><i class="fa-solid fa-bolt"></i> Lag Free Experience</div>
+                    <div class="feature-badge"><i class="fa-solid fa-mobile-screen"></i> Bedrock Crossplay</div>
+                </div>
+
+                <div class="connection-grid">
+                    <div class="conn-box" onclick="copyValue('play.lucifermc.fun', this)">
+                        <span class="conn-label">Server IP Address</span>
+                        <span class="conn-value">play.lucifermc.fun</span>
+                        <span class="copy-tooltip">Click to copy</span>
+                    </div>
+                    <div class="conn-box" onclick="copyValue('19116', this)">
+                        <span class="conn-label">Bedrock Port Location</span>
+                        <span class="conn-value">19116</span>
+                        <span class="copy-tooltip">Click to copy</span>
+                    </div>
+                </div>
+
+                <div class="status-panel">
+                    <div class="status-info-side">
+                        <div id="statusIndicator" class="status-indicator"></div>
+                        <div>
+                            <div id="statusMessage" class="status-text-headline">Pinging network...</div>
+                            <div id="statusTimer" class="status-update-timer">Refreshing in 10s</div>
+                        </div>
+                    </div>
+                    <div id="playerCounter" class="player-count">--/--</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVER RANKS STOREFRONT SECTION -->
+        <section id="store" class="container">
+            <h2 class="section-title">Server Ranks Store</h2>
+            <div class="store-grid">
+                <!-- Void Rank -->
+                <div class="rank-card void-rank">
+                    <h3 class="rank-name" style="color: var(--color-void);">VOID</h3>
+                    <div class="rank-price">FREE <span>at Discord</span></div>
+                    <ul class="perks-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Custom Discord Role</li>
+                        <li><i class="fa-solid fa-circle-check"></i> 3x Homes</li>
+                    </ul>
+                    <a href="https://discord.gg/ykkpPz5GAa" target="_blank" class="buy-btn">Claim</a>
+                </div>
+                <!-- VIP Rank -->
+                <div class="rank-card vip-rank">
+                    <h3 class="rank-name" style="color: var(--color-vip);">VIP</h3>
+                    <div class="rank-price">₹ 30 <span>one-time</span></div>
+                    <ul class="perks-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Custom Discord Role</li>
+                        <li><i class="fa-solid fa-circle-check"></i> /feed Command</li>
+                    </ul>
+                    <a href="https://discord.gg/ykkpPz5GAa" target="_blank" class="buy-btn">Buy Now</a>
+                </div>
+                <!-- MVP Rank -->
+                <div class="rank-card mvp-rank">
+                    <h3 class="rank-name" style="color: var(--color-mvp);">MVP</h3>
+                    <div class="rank-price">₹ 50 <span>one-time</span></div>
+                    <ul class="perks-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Custom Discord Role</li>
+                        <li><i class="fa-solid fa-circle-check"></i> /enderchest</li>
+                    </ul>
+                    <a href="https://discord.gg/ykkpPz5GAa" target="_blank" class="buy-btn">Buy Now</a>
+                </div>
+                <!-- Elite Rank -->
+                <div class="rank-card elite-rank">
+                    <h3 class="rank-name" style="color: var(--color-elite);">ELITE</h3>
+                    <div class="rank-price">₹ 99 <span>one-time</span></div>
+                    <ul class="perks-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Custom Discord Role</li>
+                        <li><i class="fa-solid fa-circle-check"></i> /ptime & /pweather</li>
+                    </ul>
+                    <a href="https://discord.gg/ykkpPz5GAa" target="_blank" class="buy-btn">Buy Now</a>
+                </div>
+                <!-- Lucifer Rank -->
+                <div class="rank-card lucifer-rank">
+                    <h3 class="rank-name" style="color: var(--color-lucifer);">LUCIFER</h3>
+                    <div class="rank-price">₹ 149 <span>one-time</span></div>
+                    <ul class="perks-list">
+                        <li><i class="fa-solid fa-circle-check"></i> Custom Discord Role</li>
+                        <li><i class="fa-solid fa-circle-check"></i> /heal Command</li>
+                    </ul>
+                    <a href="https://discord.gg/ykkpPz5GAa" target="_blank" class="buy-btn">Buy Now</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE PLAYER REVIEWS SECTION -->
+        <section id="reviews" class="container">
+            <h2 class="section-title">Player Reviews</h2>
+            <div class="reviews-layout">
+                <div class="review-form-container">
+                    <h3>Leave a Review</h3>
+                    <form id="reviewForm" onsubmit="handleReviewSubmit(event)">
+                        <div class="form-group">
+                            <label>Minecraft Username</label>
+                            <input type="text" id="reviewerName" class="form-control" placeholder="e.g. Notch" required maxlength="16">
+                        </div>
+                        <div class="form-group">
+                            <label>Your Rating</label>
+                            <div class="star-rating-select" id="starRatingSelect">
+                                <i class="fa-solid fa-star active" data-value="1"></i>
+                                <i class="fa-solid fa-star active" data-value="2"></i>
+                                <i class="fa-solid fa-star active" data-value="3"></i>
+                                <i class="fa-solid fa-star active" data-value="4"></i>
+                                <i class="fa-solid fa-star active" data-value="5"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Your Feedback</label>
+                            <textarea id="reviewContent" class="form-control" rows="4" placeholder="What do you think of the server?" required maxlength="300"></textarea>
+                        </div>
+                        <button type="submit" id="submitBtn" class="submit-review-btn">Post Review</button>
+                    </form>
+                </div>
+
+                <div class="reviews-feed" id="reviewsFeed">
+                    <!-- Loaded dynamically via database -->
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="container" style="padding: 1rem 0;">
+                <p>&copy; 2026 Lucifer MC Server Network. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- INTERACTION LOGIC & POLLING -->
+    <script>
+        // --- 1. SUPABASE DATABASE INITIALIZATION ---
+        const SUPABASE_URL = "https://ziwxtbvtszyztlapreld.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inppd3h0YnZ0c3p5enRsYXByZWxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNDYyNjcsImV4cCI6MjA5ODkyMjI2N30.zCR1DX3T9-LjpUrlcLRGDInoaNnLi1ueRUS-tPQhHvs";
+        
+        const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // PLACE YOUR NUMERICAL DISCORD USER ID HERE FOR TRASH CAN DELETION ACCESS
+        const ADMIN_DISCORD_ID = "YOUR_DISCORD_USER_ID"; 
+        
+        let currentUser = null;
+
+        // --- 2. IP ADDRESS COPY MECHANISM ---
+        function copyValue(text, element) {
+            navigator.clipboard.writeText(text);
+            const tooltip = element.querySelector('.copy-tooltip');
+            tooltip.innerText = "Copied Address!";
+            tooltip.style.opacity = "1";
+            setTimeout(() => {
+                tooltip.style.opacity = "0";
+                setTimeout(() => tooltip.innerText = "Click to copy", 300);
+            }, 1500);
+        }
+
+        // --- 3. MCSTATUS ENGINE CONFIGURATION ---
+        const serverIP = "play.lucifermc.fun";
+        let countdownTime = 10;
+        let countdownInterval;
+
+        async function updateMinecraftStatus() {
+            const indicator = document.getElementById('statusIndicator');
+            const message = document.getElementById('statusMessage');
+            const countDisplay = document.getElementById('playerCounter');
+
+            try {
+                const response = await fetch(`https://api.mcstatus.io/v2/status/java/${serverIP}`);
+                if (!response.ok) throw new Error("API error");
+                const data = await response.json();
+
+                if (data.online) {
+                    indicator.className = "status-indicator online";
+                    message.innerText = "Server Online";
+                    message.style.color = "#00ff66";
+                    countDisplay.innerText = `${data.players.online}/${data.players.max}`;
+                } else {
+                    indicator.className = "status-indicator offline";
+                    message.innerText = "Server Offline";
+                    message.style.color = "#ff3333";
+                    countDisplay.innerText = "0/0";
+                }
+            } catch (error) {
+                indicator.className = "status-indicator offline";
+                message.innerText = "Status Error";
+                message.style.color = "#ff3333";
+                countDisplay.innerText = "--/--";
+            }
+            resetCountdown();
+        }
+
+        function resetCountdown() {
+            clearInterval(countdownInterval);
+            countdownTime = 10;
+            const timerDisplay = document.getElementById('statusTimer');
+            countdownInterval = setInterval(() => {
+                countdownTime--;
+                timerDisplay.innerText = `Refreshing in ${countdownTime}s`;
+                if (countdownTime <= 0) {
+                    clearInterval(countdownInterval);
+                    updateMinecraftStatus();
+                }
+            }, 1000);
+        }
+
+        // --- 4. DISCORD AUTH LOGIC (ENTIRE SITE GATEWAY) ---
+        async function loginWithDiscord() {
+            const { error } = await _supabase.auth.signInWithOAuth({
+                provider: 'discord',
+                options: { 
+                    scopes: 'identify guilds.join',
+                    redirectTo: window.location.origin + window.location.pathname 
+                }
+            });
+            if (error) alert("Login Error: " + error.message);
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            window.localStorage.removeItem('discord_user_token');
+            window.location.reload();
+        }
+
+        function setupAuthTracker() {
+            _supabase.auth.onAuthStateChange((event, session) => {
+                const loginOverlay = document.getElementById('loginOverlay');
+                const mainContent = document.getElementById('mainContent');
+                const adminUserTag = document.getElementById('adminUserTag');
+
+                if (session && session.user) {
+                    currentUser = session.user;
+
+                    if (session.provider_token) {
+                        window.localStorage.setItem('discord_user_token', session.provider_token);
+                    }
+                    
+                    adminUserTag.innerText = `Logged in as: ${currentUser.user_metadata.full_name || 'User'}`;
+
+                    loginOverlay.style.opacity = "0";
+                    setTimeout(() => loginOverlay.style.display = "none", 400);
+                    mainContent.style.display = "block";
+                    
+                    updateMinecraftStatus();
+                    fetchGlobalReviews();
+                } else {
+                    currentUser = null;
+                    loginOverlay.style.display = "flex";
+                    loginOverlay.style.opacity = "1";
+                    mainContent.style.display = "none";
+                }
+            });
+        }
+
+        // --- 5. CLOUD REVIEW SYSTEM ---
+        let selectedRating = 5;
+
+        function setupStarListeners() {
+            const starSelectContainer = document.getElementById('starRatingSelect');
+            if (!starSelectContainer) return;
+            const stars = starSelectContainer.querySelectorAll('i');
+            stars.forEach(star => {
+                star.addEventListener('click', () => {
+                    selectedRating = parseInt(star.getAttribute('data-value'));
+                    stars.forEach((s, idx) => {
+                        if (idx < selectedRating) s.classList.add('active');
+                        else s.classList.remove('active');
+                    });
+                });
+            });
+        }
+
+        async function fetchGlobalReviews() {
+            const feed = document.getElementById('reviewsFeed');
+            try {
+                const { data: reviews, error } = await _supabase
+                    .from('reviews')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (!reviews || reviews.length === 0) {
+                    feed.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 2rem;">No reviews posted yet.</p>`;
+                    return;
+                }
+
+                const isAdmin = currentUser && currentUser.app_metadata.provider === 'discord' && currentUser.user_metadata.provider_id === ADMIN_DISCORD_ID;
+
+                feed.innerHTML = ''; 
+                reviews.forEach(review => {
+                    let starHTML = '';
+                    for (let i = 1; i <= 5; i++) {
+                        starHTML += i <= review.rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star" style="color: #3a3a45;"></i>';
+                    }
+
+                    const reviewDate = new Date(review.created_at).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric'
+                    });
+
+                    const deleteButtonHTML = isAdmin 
+                        ? `<i class="fa-solid fa-trash-can" onclick="secureDelete(${review.id})" style="color:#ff3333; cursor:pointer; margin-left:15px; font-size:0.9rem;" title="Delete Review"></i>` 
+                        : '';
+
+                    const reviewCard = document.createElement('div');
+                    reviewCard.className = 'review-card';
+                    reviewCard.innerHTML = `
+                        <img src="https://mc-heads.net/avatar/${encodeURIComponent(review.name)}/44" alt="${review.name}" class="avatar-img" onerror="this.src='https://mc-heads.net/avatar/MHF_Question/44'">
+                        <div style="flex-grow: 1;">
+                            <div class="review-header">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div class="reviewer-name">${escapeHTML(review.name)}</div>
+                                    <div class="review-stars">${starHTML}</div>
+                                </div>
+                                <div style="display:flex; align-items:center;">
+                                    <div class="review-date">${reviewDate}</div>
+                                    ${deleteButtonHTML}
+                                </div>
+                            </div>
+                            <p class="review-text">${escapeHTML(review.content)}</p>
+                        </div>
+                    `;
+                    feed.appendChild(reviewCard);
+                });
+            } catch (err) {
+                console.error("Error reading data:", err);
+            }
+        }
+
+        async function secureDelete(reviewId) {
+            if (!confirm("Are you sure you want to permanently delete this review?")) return;
+            try {
+                const { error } = await _supabase.from('reviews').delete().eq('id', reviewId);
+                if (error) throw error;
+                fetchGlobalReviews();
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+            }
+        }
+
+        async function handleReviewSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            const nameInput = document.getElementById('reviewerName');
+            const contentInput = document.getElementById('reviewContent');
+
+            const name = nameInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!name || !content) return;
+            submitBtn.disabled = true;
+
+            try {
+                const { error } = await _supabase.from('reviews').insert([{ name: name, rating: selectedRating, content: content }]);
+                if (error) throw error;
+
+                nameInput.value = '';
+                contentInput.value = '';
+                fetchGlobalReviews();
+            } catch (err) {
+                alert("Could not post review.");
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+
+        // INITIALIZATION
+        document.addEventListener("DOMContentLoaded", () => {
+            setupAuthTracker();
+            setupStarListeners();
+        });
+    </script>
+</body>
+</html>
